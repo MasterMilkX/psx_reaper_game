@@ -129,6 +129,14 @@ public class @Control_Map : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""DEBUG"",
+                    ""type"": ""Button"",
+                    ""id"": ""3491ef9e-2263-4139-95be-1b45be703962"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -439,6 +447,17 @@ public class @Control_Map : IInputActionCollection, IDisposable
                     ""action"": ""CamRight2"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8398eb0b-6906-4902-bb7d-dcb6819c6658"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DEBUG"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -461,6 +480,7 @@ public class @Control_Map : IInputActionCollection, IDisposable
         m_PSX_Controller_Phone = m_PSX_Controller.FindAction("Phone", throwIfNotFound: true);
         m_PSX_Controller_CamLeft2 = m_PSX_Controller.FindAction("CamLeft2", throwIfNotFound: true);
         m_PSX_Controller_CamRight2 = m_PSX_Controller.FindAction("CamRight2", throwIfNotFound: true);
+        m_PSX_Controller_DEBUG = m_PSX_Controller.FindAction("DEBUG", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -524,6 +544,7 @@ public class @Control_Map : IInputActionCollection, IDisposable
     private readonly InputAction m_PSX_Controller_Phone;
     private readonly InputAction m_PSX_Controller_CamLeft2;
     private readonly InputAction m_PSX_Controller_CamRight2;
+    private readonly InputAction m_PSX_Controller_DEBUG;
     public struct PSX_ControllerActions
     {
         private @Control_Map m_Wrapper;
@@ -542,6 +563,7 @@ public class @Control_Map : IInputActionCollection, IDisposable
         public InputAction @Phone => m_Wrapper.m_PSX_Controller_Phone;
         public InputAction @CamLeft2 => m_Wrapper.m_PSX_Controller_CamLeft2;
         public InputAction @CamRight2 => m_Wrapper.m_PSX_Controller_CamRight2;
+        public InputAction @DEBUG => m_Wrapper.m_PSX_Controller_DEBUG;
         public InputActionMap Get() { return m_Wrapper.m_PSX_Controller; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -593,6 +615,9 @@ public class @Control_Map : IInputActionCollection, IDisposable
                 @CamRight2.started -= m_Wrapper.m_PSX_ControllerActionsCallbackInterface.OnCamRight2;
                 @CamRight2.performed -= m_Wrapper.m_PSX_ControllerActionsCallbackInterface.OnCamRight2;
                 @CamRight2.canceled -= m_Wrapper.m_PSX_ControllerActionsCallbackInterface.OnCamRight2;
+                @DEBUG.started -= m_Wrapper.m_PSX_ControllerActionsCallbackInterface.OnDEBUG;
+                @DEBUG.performed -= m_Wrapper.m_PSX_ControllerActionsCallbackInterface.OnDEBUG;
+                @DEBUG.canceled -= m_Wrapper.m_PSX_ControllerActionsCallbackInterface.OnDEBUG;
             }
             m_Wrapper.m_PSX_ControllerActionsCallbackInterface = instance;
             if (instance != null)
@@ -639,6 +664,9 @@ public class @Control_Map : IInputActionCollection, IDisposable
                 @CamRight2.started += instance.OnCamRight2;
                 @CamRight2.performed += instance.OnCamRight2;
                 @CamRight2.canceled += instance.OnCamRight2;
+                @DEBUG.started += instance.OnDEBUG;
+                @DEBUG.performed += instance.OnDEBUG;
+                @DEBUG.canceled += instance.OnDEBUG;
             }
         }
     }
@@ -659,5 +687,6 @@ public class @Control_Map : IInputActionCollection, IDisposable
         void OnPhone(InputAction.CallbackContext context);
         void OnCamLeft2(InputAction.CallbackContext context);
         void OnCamRight2(InputAction.CallbackContext context);
+        void OnDEBUG(InputAction.CallbackContext context);
     }
 }

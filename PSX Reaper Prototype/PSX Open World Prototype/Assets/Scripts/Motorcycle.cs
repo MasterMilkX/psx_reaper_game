@@ -9,14 +9,14 @@ public class Motorcycle : Vehicle
     private WheelGrounding rearWheel;
 
     //properties
-    private int surfaces = 0;
-
     public bool gas = false;
     public bool brake = false;
     public bool fbrake = false;
+    public bool drift = false;
     private int[] turnVec = {0,0};          //l,r
     private int[] wheelieVec = {0,0};      //u,d
     private float horInput;
+    private float driftLock = 0.0f;
 
     //motorcycle stats
     public float maxSpeed = 30.0f;
@@ -28,19 +28,19 @@ public class Motorcycle : Vehicle
 
     //DriftController.cs physics stats
     public float GripX = 12.0f;         //sideways friction  (higher -> quicker stop)
-    public float GripZ = 12.0f;          //forward friction (higher -> quicker stop) 
-    private float RotVel = 0.5f;        //ratio of forward velocity transferred on rotation
+    public float GripZ = 5.0f;          //forward friction (higher -> harder to drift) 
+    private float RotVel = 0.7f;        //ratio of forward velocity transferred on rotation
     private float MinRotSpeed = 0.25f;
     private float MaxRotSpeed = 5f;
     public AnimationCurve SlipL;
     public AnimationCurve SlipU;
-    private float SlipMod = 10.0f;      //higher -> harder to enter drift
+    private float SlipMod = 5.0f;      //higher -> harder to enter drift
     float isRight = 1.0f;
     float isForward = 1.0f;                 
     private bool isRotating = false;        //in rotation
-    private bool inSlip = false;            //vehicle is slipping 
+    public bool inSlip = false;            //vehicle is slipping 
     Vector3 vel = Vector3.zero;
-    Vector3 pvel = Vector3.zero;
+    public Vector3 pvel = Vector3.zero;
 
     float accel;
     float rot;
@@ -76,11 +76,17 @@ public class Motorcycle : Vehicle
         cmap.PSX_Controller.Jump_Fly.performed += ctx => {gas = true;};
         cmap.PSX_Controller.Jump_Fly.canceled += ctx => {gas = false;};
 
-        cmap.PSX_Controller.CamLeft.performed += ctx => {brake = true;};
-        cmap.PSX_Controller.CamLeft.canceled += ctx => {brake = false;};
+        cmap.PSX_Controller.Sword.performed += ctx => {brake = true;};
+        cmap.PSX_Controller.Sword.canceled += ctx => {brake = false;};
 
-        cmap.PSX_Controller.CamRight.performed += ctx => {fbrake = true;};
-        cmap.PSX_Controller.CamRight.canceled += ctx => {fbrake = false;};
+        cmap.PSX_Controller.Interact.performed += ctx => {fbrake = true;};
+        cmap.PSX_Controller.Interact.canceled += ctx => {fbrake = false;};
+
+        //drift
+        cmap.PSX_Controller.CamLeft.performed += ctx => {drift = true;};
+        cmap.PSX_Controller.CamLeft.canceled += ctx => {drift = false;};
+        cmap.PSX_Controller.CamRight.performed += ctx => {drift = true;};
+        cmap.PSX_Controller.CamRight.canceled += ctx => {drift = false;};
 
     }
     void OnEnable(){
@@ -114,12 +120,12 @@ public class Motorcycle : Vehicle
             rotVel = RotVel;
             rb.angularDrag = 5.0f;
 
-            // accel = accel * Mathf.Cos(transform.eulerAngles.x * Mathf.Deg2Rad);
-            // accel = accel > 0f ? accel : 0f;
-            // gripX = gripX * Mathf.Cos(transform.eulerAngles.x * Mathf.Deg2Rad);
-            // gripX = gripX > 0f ? gripX : 0f;
-            // gripZ = gripZ * Mathf.Cos(transform.eulerAngles.z * Mathf.Deg2Rad);
-            // gripZ = gripZ > 0f ? gripZ : 0f;
+            accel = accel * Mathf.Cos(transform.eulerAngles.x * Mathf.Deg2Rad);
+            accel = accel > 0f ? accel : 0f;
+            gripX = gripX * Mathf.Cos(transform.eulerAngles.z * Mathf.Deg2Rad);
+            gripX = gripX > 0f ? gripX : 0f;
+            gripZ = gripZ * Mathf.Cos(transform.eulerAngles.x * Mathf.Deg2Rad);
+            gripZ = gripZ > 0f ? gripZ : 0f;
 
             //freefallin
             if(!rearWheel.isGrounded && !frontWheel.isGrounded){
@@ -160,8 +166,6 @@ public class Motorcycle : Vehicle
             Lean();
             //Wheelie();
 
-            //keep player in the seat
-            rider.transform.eulerAngles = seat.eulerAngles;
 
 
             vel = transform.InverseTransformDirection(rb.velocity);
@@ -191,12 +195,17 @@ public class Motorcycle : Vehicle
             //keep upright
             transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
 
+            //keep player in the seat
+            rider.transform.eulerAngles = seat.eulerAngles;
+
+
+            Debug.Log("X: " + gripX.ToString() + " | Z: " + gripZ.ToString() + " | Slip: " + slip + " | PVEL.X: " + Mathf.Abs(pvel.x));
         }
     }
 
     //slowly lean the bike when turning
     private void Lean(){
-        float leanSpeed = 2.0f;
+        float leanSpeed = 5.0f;
         float toPos = 0.0f;
         if(turnVec[0] == 1){
             toPos = 1.0f;
@@ -239,15 +248,23 @@ public class Motorcycle : Vehicle
     }
 
     private void HandleMotor(){
+        //gas
         if(gas && Mathf.Abs(rb.velocity.magnitude) < maxSpeed){
             rb.velocity += transform.forward * accelRate * Time.deltaTime;
-            gripZ = 0f;
+            gripZ = 0f;     //need this or vehicle won't move
         }
+        //brake
         if(brake && rearWheel.isGrounded){
             rb.velocity -= transform.forward * brakeRate * Time.deltaTime;
         }
-        if(fbrake && frontWheel.isGrounded && rb.velocity.magnitude > 0){
+        if(fbrake && frontWheel.isGrounded){
             rb.velocity -= transform.forward * brakeRate * Time.deltaTime;
+        }
+
+        //drift
+        if(drift && frontWheel.isGrounded && rearWheel.isGrounded){
+            gripX = 20f;
+            gripZ = 2f;
         }
 
         isRotating = false;
@@ -263,10 +280,17 @@ public class Motorcycle : Vehicle
         // }else if(turnVec[1] == 1){
         //     transform.Rotate(Vector3.up*turn);
         // }
-        if(horInput == -1 || horInput == 1 && frontWheel.isGrounded){
+        if((horInput == -1 || horInput == 1) && frontWheel.isGrounded && !drift){
             float d = (pvel.z < 0) ? -1 : 1;
             Vector3 drot = Vector3.zero;
             drot.y = d*horInput*rot*Time.deltaTime;
+            transform.rotation *= Quaternion.AngleAxis(drot.y, transform.up);
+            isRotating = true;
+            driftLock = horInput;
+        }else if(drift && frontWheel.isGrounded){
+            float d = (pvel.z < 0) ? -1 : 1;
+            Vector3 drot = Vector3.zero;
+            drot.y = d*(driftLock+horInput)*rot*Time.deltaTime;
             transform.rotation *= Quaternion.AngleAxis(drot.y, transform.up);
             isRotating = true;
         }

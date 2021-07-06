@@ -68,6 +68,7 @@ public class Sword : MonoBehaviour
         animator.SetTrigger("putAway");
         sheathed = true;
         hand = "none";
+        blade.canHit = false;
     }
 
 
@@ -80,6 +81,8 @@ public class Sword : MonoBehaviour
         animator.SetTrigger("putAway_vehicle");
         sheathed = true;
         hand = "none";
+        blade.canHit = false;
+        blade.clotheslined = false;
     }
 
     
@@ -88,12 +91,16 @@ public class Sword : MonoBehaviour
             animator.SetTrigger("driveLeft");
             sheathed = false;
         }
+        blade.canHit = true;
+        blade.clotheslined = true;
     }
     public void HoldRight(){
         if(sheathed){
             animator.SetTrigger("driveRight");
             sheathed = false;
         }
+        blade.canHit = true;
+        blade.clotheslined = false;
     }
 
 }

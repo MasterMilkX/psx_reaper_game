@@ -5,9 +5,12 @@ using UnityEngine;
 public class SwordBlade : MonoBehaviour
 {
 	[HideInInspector] public bool canHit = true;
+    [HideInInspector] public bool clotheslined = false;
+
 	private Transform lastHit;
 	public float baseKnockback = 100.0f;
 	public float curKnockback = 100.0f;
+
 
 	private Transform swordsman;
 

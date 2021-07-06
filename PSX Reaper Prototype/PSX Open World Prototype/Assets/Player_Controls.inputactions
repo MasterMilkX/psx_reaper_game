@@ -116,6 +116,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "DEBUG",
+                    "type": "Button",
+                    "id": "3491ef9e-2263-4139-95be-1b45be703962",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -424,6 +432,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "CamRight2",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8398eb0b-6906-4902-bb7d-dcb6819c6658",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DEBUG",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

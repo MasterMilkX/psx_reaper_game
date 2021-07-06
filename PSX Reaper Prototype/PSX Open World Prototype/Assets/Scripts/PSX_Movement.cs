@@ -88,6 +88,12 @@ public class PSX_Movement : MonoBehaviour
         cmap.PSX_Controller.CamLeft.canceled += ctx => {turnCam = 0;};
         cmap.PSX_Controller.CamRight.canceled += ctx => {turnCam = 0;};
 
+        //driving sword controller
+        cmap.PSX_Controller.CamLeft2.performed += ctx => LeftSword();
+        cmap.PSX_Controller.CamRight2.performed += ctx => RightSword();
+        cmap.PSX_Controller.CamLeft2.canceled += ctx => SwordUp();
+        cmap.PSX_Controller.CamRight2.canceled += ctx => SwordUp();
+
         //actions
         //cmap.PSX_Controller.Jump_Fly.started += ctx => JumpOrFly();
         cmap.PSX_Controller.Jump_Fly.started += ctx => {jumper = true;};
@@ -95,10 +101,6 @@ public class PSX_Movement : MonoBehaviour
 
         cmap.PSX_Controller.Sword.started += ctx => {if(!driving)sword.Attack();};
         cmap.PSX_Controller.Interact.started += ctx => {if(!driving)sword.SheathSword();};
-        cmap.PSX_Controller.Sword.performed += ctx => LeftSword();
-        cmap.PSX_Controller.Interact.performed += ctx => RightSword();
-        cmap.PSX_Controller.Sword.canceled += ctx => SwordUp();
-        cmap.PSX_Controller.Interact.canceled += ctx => SwordUp();
 
     }
     void OnEnable(){
