@@ -199,7 +199,7 @@ public class Motorcycle : Vehicle
             rider.transform.eulerAngles = seat.eulerAngles;
 
 
-            Debug.Log("X: " + gripX.ToString() + " | Z: " + gripZ.ToString() + " | Slip: " + slip + " | PVEL.X: " + Mathf.Abs(pvel.x));
+            //Debug.Log("X: " + gripX.ToString() + " | Z: " + gripZ.ToString() + " | Slip: " + slip + " | PVEL.X: " + Mathf.Abs(pvel.x));
         }
     }
 
@@ -207,10 +207,18 @@ public class Motorcycle : Vehicle
     private void Lean(){
         float leanSpeed = 5.0f;
         float toPos = 0.0f;
-        if(turnVec[0] == 1){
-            toPos = 1.0f;
-        }else if(turnVec[1] == 1){
-            toPos = -1.0f;
+        if(!drift){
+            if(turnVec[0] == 1){
+                toPos = 1.0f;
+            }else if(turnVec[1] == 1){
+                toPos = -1.0f;
+            }
+        }else{
+            if(driftLock == -1){
+                toPos = 2f;
+            }else if(driftLock == 1){
+                toPos = -2f;
+            }
         }
         bikeBody.localRotation = Quaternion.Slerp(bikeBody.localRotation, Quaternion.Euler(0,0,toPos*maxLean), Time.fixedDeltaTime*leanSpeed);
     }
@@ -284,13 +292,16 @@ public class Motorcycle : Vehicle
             float d = (pvel.z < 0) ? -1 : 1;
             Vector3 drot = Vector3.zero;
             drot.y = d*horInput*rot*Time.deltaTime;
+            Debug.Log("normal: " + drot.y);
             transform.rotation *= Quaternion.AngleAxis(drot.y, transform.up);
             isRotating = true;
             driftLock = horInput;
         }else if(drift && frontWheel.isGrounded){
             float d = (pvel.z < 0) ? -1 : 1;
             Vector3 drot = Vector3.zero;
-            drot.y = d*(driftLock+horInput)*rot*Time.deltaTime;
+            drot.y = d*(driftLock)*(rot - (driftLock*horInput*(rot/2.0f)))*Time.deltaTime;
+            //drot.y = d*(driftLock)*(rot)*Time.deltaTime;
+            Debug.Log("drift: " + drot.y);
             transform.rotation *= Quaternion.AngleAxis(drot.y, transform.up);
             isRotating = true;
         }

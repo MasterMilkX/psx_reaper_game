@@ -28,6 +28,11 @@ public class PSX_Movement : MonoBehaviour
     public Transform curVehicle;
     public bool usedSword = false;
 
+    //z-targeting
+    private Ztarget ztScript;
+    public bool ztargeting = false;
+    public Transform curTarget = null;
+
     //camera and rotation
     public Transform cam;
     public float rotY = 0.0f;
@@ -82,11 +87,15 @@ public class PSX_Movement : MonoBehaviour
         cmap.PSX_Controller.MoveUp.canceled += ctx => {axisActive[0] = 0;};
         cmap.PSX_Controller.MoveDown.canceled += ctx => {axisActive[1] = 0;};
 
+        //z-targeting
+        cmap.PSX_Controller.CamRight.performed += ctx => ToggleZTarget();
+        cmap.PSX_Controller.CamRight.canceled += ctx => {};
+
         //camera movement
-        cmap.PSX_Controller.CamLeft.performed += ctx => {turnCam = -1;};
-        cmap.PSX_Controller.CamRight.performed += ctx => {turnCam = 1;};
-        cmap.PSX_Controller.CamLeft.canceled += ctx => {turnCam = 0;};
-        cmap.PSX_Controller.CamRight.canceled += ctx => {turnCam = 0;};
+        cmap.PSX_Controller.CamLeft2.performed += ctx => {turnCam = -1;};
+        cmap.PSX_Controller.CamRight2.performed += ctx => {turnCam = 1;};
+        cmap.PSX_Controller.CamLeft2.canceled += ctx => {turnCam = 0;};
+        cmap.PSX_Controller.CamRight2.canceled += ctx => {turnCam = 0;};
 
         //driving sword controller
         cmap.PSX_Controller.CamLeft2.performed += ctx => LeftSword();
@@ -118,6 +127,7 @@ public class PSX_Movement : MonoBehaviour
         sword = transform.Find("Sword").GetComponent<Sword>();
         inter = transform.Find("InteractSphere").GetComponent<Interactor>();
         rotY = transform.eulerAngles.y;
+        ztScript = transform.Find("ZT").GetComponent<Ztarget>();
 
         curHealth = maxHealth;
 
@@ -155,23 +165,49 @@ public class PSX_Movement : MonoBehaviour
         //clear debug ui text
         debugTxt = "";
 
-
-        //camera movement
-        if(cam && !driving){
-            rotY = transform.eulerAngles.y;
-            transform.eulerAngles = new Vector3(0, rotY+(turnCam*camSpeed), 0);
-        }
-
-        
         //reset movement
         if(!axisActive.Contains(1)){
             horDir = 0;
             verDir = 0;
         }
-        
 
-        float velZ = verDir * moveSpeed * Time.fixedDeltaTime;
-        float velX = horDir * moveSpeed * Time.fixedDeltaTime;
+        //camera movement
+        if(cam && !driving){
+            //normal
+            if(!ztargeting){
+                rotY = transform.eulerAngles.y;
+                transform.eulerAngles = new Vector3(0, rotY+(turnCam*camSpeed), 0);    
+            }
+            
+        }
+
+        float velZ = 0;
+        float velX = 0;
+
+        //normal movement
+        if(!ztargeting){
+            velZ = verDir * moveSpeed * Time.fixedDeltaTime;
+            velX = horDir * moveSpeed * Time.fixedDeltaTime;
+        }
+        //z-targeting
+        else{
+            // velZ = verDir * moveSpeed * Time.fixedDeltaTime;
+            // velX = horDir * moveSpeed * Time.fixedDeltaTime;
+
+            //transform.RotateAround(curTarget.position,transform.up,horDir*moveSpeed*Time.fixedDeltaTime);
+            //float r = Vector3.Distance(transform.position, curTarget.position);
+
+            transform.LookAt(curTarget, transform.up);
+            velZ = verDir * moveSpeed * Time.fixedDeltaTime;
+
+            velX = horDir * moveSpeed * Time.fixedDeltaTime;
+
+
+            
+
+        }
+
+        
 
         if(cc.isGrounded){
             //take fall damage if fell too hard
@@ -235,6 +271,8 @@ public class PSX_Movement : MonoBehaviour
         }
     }
 
+
+
     //allows jumping and flying
     void JumpOrFly(){
         if(curStamina <= 0)
@@ -244,15 +282,30 @@ public class PSX_Movement : MonoBehaviour
         curStamina -= staminaDepl;
     }
 
-    //allow interaction with a vehicle
-    void VehicleInteract(){
-        if(driving){
-            curVehicle.GetComponent<Vehicle>().Dismount();
-            curVehicle = null;
-        }else{
-            MountVehicle();
+    void ToggleZTarget(){
+        if(ztScript == null){return;}       //can't z-target
+        //ztScript.ShowTargets();
+
+        //toggle z-target target
+        Transform nt = ztScript.GetClosestTarget();
+        if(nt != null && curTarget == null){                //first target
+            Debug.Log("set target");
+            curTarget = nt;
+            ztargeting = true;
+        }else if(curTarget != null){    
+            Transform xt = ztScript.GetNextTarget(nt);
+            if(xt == curTarget || axisActive[1] == 1){          //deactivate
+                Debug.Log("deactivate");
+                curTarget = null;
+                ztargeting = false;
+            }else if(xt != curTarget){                      //switch targets
+                Debug.Log("switch targets");
+                curTarget = xt;
+                ztargeting = true;
+            }
         }
     }
+
 
     //sword interaction on left side (ground/vehicle)
     void LeftSword(){
@@ -270,10 +323,24 @@ public class PSX_Movement : MonoBehaviour
         }
     }
 
+    //retract sword
     void SwordUp(){
         if(driving){
             sword.hand = "none";
             sword.DriveSheath();
+        }
+    }
+
+
+
+
+    //allow interaction with a vehicle
+    void VehicleInteract(){
+        if(driving){
+            curVehicle.GetComponent<Vehicle>().Dismount();
+            curVehicle = null;
+        }else{
+            MountVehicle();
         }
     }
 
