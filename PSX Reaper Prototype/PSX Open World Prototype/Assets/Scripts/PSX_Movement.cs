@@ -171,6 +171,11 @@ public class PSX_Movement : MonoBehaviour
             verDir = 0;
         }
 
+        //check if ztarget is alive
+        if(curTarget == null){
+            ztargeting = false;
+        }
+
         //camera movement
         if(cam && !driving){
             //normal
@@ -183,30 +188,18 @@ public class PSX_Movement : MonoBehaviour
 
         float velZ = 0;
         float velX = 0;
+        float moveMod = 1.0f;
 
-        //normal movement
-        if(!ztargeting){
-            velZ = verDir * moveSpeed * Time.fixedDeltaTime;
-            velX = horDir * moveSpeed * Time.fixedDeltaTime;
-        }
-        //z-targeting
-        else{
-            // velZ = verDir * moveSpeed * Time.fixedDeltaTime;
-            // velX = horDir * moveSpeed * Time.fixedDeltaTime;
-
-            //transform.RotateAround(curTarget.position,transform.up,horDir*moveSpeed*Time.fixedDeltaTime);
-            //float r = Vector3.Distance(transform.position, curTarget.position);
-
-            transform.LookAt(curTarget, transform.up);
-            velZ = verDir * moveSpeed * Time.fixedDeltaTime;
-
-            velX = horDir * moveSpeed * Time.fixedDeltaTime;
-
-
-            
-
+        //always look at zarget if z targeting
+        if(ztargeting && curTarget != null){
+            transform.LookAt(curTarget);
+            moveMod = Mathf.Max(Vector3.Distance(transform.position,curTarget.position)/8.0f,0.5f);
         }
 
+        //move as normal (will move in circle if z targeting)
+        velZ = verDir * moveSpeed * Time.fixedDeltaTime;
+        velX = horDir * moveSpeed * Time.fixedDeltaTime * moveMod;
+        
         
 
         if(cc.isGrounded){
@@ -286,22 +279,39 @@ public class PSX_Movement : MonoBehaviour
         if(ztScript == null){return;}       //can't z-target
         //ztScript.ShowTargets();
 
+        if(verDir == -1){                   //backing up => disable z-target
+            Debug.Log("disengage");
+            ztargeting = false;
+            curTarget = null;
+            return;
+        }
+
         //toggle z-target target
         Transform nt = ztScript.GetClosestTarget();
         if(nt != null && curTarget == null){                //first target
             Debug.Log("set target");
             curTarget = nt;
             ztargeting = true;
-        }else if(curTarget != null){    
+            return;
+        }else if(curTarget != null){                       
+            if(curTarget != nt){                             //new closest
+                Debug.Log("switch targets");
+                curTarget = nt;
+                ztargeting = true;
+                return;
+            }
+
             Transform xt = ztScript.GetNextTarget(nt);
             if(xt == curTarget || axisActive[1] == 1){          //deactivate
                 Debug.Log("deactivate");
                 curTarget = null;
                 ztargeting = false;
+                return;
             }else if(xt != curTarget){                      //switch targets
                 Debug.Log("switch targets");
                 curTarget = xt;
                 ztargeting = true;
+                return;
             }
         }
     }

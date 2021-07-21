@@ -91,7 +91,7 @@
 			"file": "Assets/Scripts/PSX_Movement.cs",
 			"settings":
 			{
-				"buffer_size": 12061,
+				"buffer_size": 11931,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -209,6 +209,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"{\n",
 			"verInput",
 			"horDir",
 			"axisAct",
@@ -371,15 +372,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12061,
+						"buffer_size": 11931,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6489,
-								6489
+								6236,
+								6238
 							]
 						],
 						"settings":
@@ -389,7 +390,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3078.0,
+						"translation.y": 3402.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

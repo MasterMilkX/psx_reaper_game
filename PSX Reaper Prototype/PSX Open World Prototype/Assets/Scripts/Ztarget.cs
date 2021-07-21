@@ -11,7 +11,7 @@ public class Ztarget : MonoBehaviour
         Transform b = null;
         float d = 1000;
         foreach(Transform t in targets){
-            if(b == null || Vector3.Distance(b.position,transform.position) < d){
+            if(b == null || Vector3.Distance(t.position,transform.position) < d){
                 b = t;
                 d = Vector3.Distance(b.position,transform.position);
             }

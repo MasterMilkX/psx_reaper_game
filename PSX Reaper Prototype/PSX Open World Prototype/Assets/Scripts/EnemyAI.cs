@@ -12,11 +12,14 @@ public class EnemyAI : MonoBehaviour
 	private MeshRenderer mr;
 	private Color ogColor;
 
+    private MasterScript mscript;
+
     // Start is called before the first frame update
     void Start(){
         rb = GetComponent<Rigidbody>();
         mr = GetComponent<MeshRenderer>();
         ogColor = mr.material.color;
+        mscript = GameObject.Find("MasterScript").GetComponent<MasterScript>();
     }
 
     // Update is called once per frame
@@ -49,6 +52,9 @@ public class EnemyAI : MonoBehaviour
     //then perish <.<
     public void Die(){
     	if(health <= 0){
+            //remove as target if ztargeted
+
+
     		Destroy(this.gameObject);
     	}
     }

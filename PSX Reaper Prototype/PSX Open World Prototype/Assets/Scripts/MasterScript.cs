@@ -7,6 +7,7 @@ public class MasterScript : MonoBehaviour
 
 	public int curCam = 0;
 	public List<GameObject> cams;
+	public GameObject player;
 
 	//controls
     Control_Map cmap;
